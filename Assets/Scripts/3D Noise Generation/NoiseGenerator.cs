@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class NoiseGenerator: MonoBehaviour
 {
+    private struct PointData
+    {
+        public bool isPoint;
+    }
+
 
     [SerializeField, Range(2,512)] private int _textureResolution;
     [SerializeField, Range(1, 64)] private int _numberOfPoints;
 
     [SerializeField] private FilterMode _filterMode;
-    private float[,] _textureData;
+    private PointData[,] _textureData;
 
+    private Vector2[] _pointArray;
 
     private Texture2D _texture;
 
@@ -45,8 +51,9 @@ public class NoiseGenerator: MonoBehaviour
         }
 
         //init texture Array
-        _textureData = new float[_textureResolution, _textureResolution];
-
+        _textureData = new PointData[_textureResolution, _textureResolution];
+        _pointArray = new Vector2[_numberOfPoints];
+        GeneratePoints();
         FillTexture();
     }
 
@@ -67,26 +74,43 @@ public class NoiseGenerator: MonoBehaviour
         float stepSize = 1f / _textureResolution;
         for (int y = 0; y < _textureResolution; y++)
         {
-            Vector3 point0 = Vector3.Lerp(point00, point01, (y + 0.5f) * stepSize);
-            Vector3 point1 = Vector3.Lerp(point10, point11, (y + 0.5f) * stepSize);
+            //Vector3 point0 = Vector3.Lerp(point00, point01, (y + 0.5f) * stepSize);
+            //Vector3 point1 = Vector3.Lerp(point10, point11, (y + 0.5f) * stepSize);
             for (int x = 0; x < _textureResolution; x++)
             {
-                Vector3 point = Vector3.Lerp(point0, point1, (x + 0.5f) * stepSize);
-                _texture.SetPixel(x, y, new Color(point.x, point.y, point.z));
+                //Vector3 point = Vector3.Lerp(point0, point1, (x + 0.5f) * stepSize);
+                if(_textureData[x,y].isPoint)
+                {
+                    _texture.SetPixel(x, y, Color.red);
+                    continue;
+                }
+                _texture.SetPixel(x, y, Color.black);
             }
         }
         _texture.Apply();
     }
 
     //Generate Points
-    private void GeneratePoints()
+    public void GeneratePoints()
     {
-        for (int x = 0; x < _textureData.Length ; x++)
+        for (int i = 0; i < _numberOfPoints; i++)
         {
-            for (int y = 0; y < _textureData.Length; y++)
-            {
+            int x = Random.Range(0, _textureResolution);
+            int y = Random.Range(0, _textureResolution);
 
+            //if selcted coordinates already contains a point redo interation 
+            if(_textureData[x,y].isPoint)
+            {
+                i--;
+                continue;
             }
+            _textureData[x,y].isPoint = true;
+            _pointArray[i] = new Vector2(x, y);
         }
+    }
+
+    private void GenerateValues()
+    {
+
     }
 }
