@@ -53,7 +53,7 @@ public class NoiseGenerator: MonoBehaviour
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
         _pointArray = new Vector2[_numberOfPoints];
-        GenerateValues();
+        GenerateCells();
         FillTexture();
     }
 
@@ -92,30 +92,6 @@ public class NoiseGenerator: MonoBehaviour
 
     private void GenerateCells()
     {
-
-    }
-
-    //Generate Points
-    public void GeneratePoints()
-    {
-        for (int i = 0; i < _numberOfPoints; i++)
-        {
-            int x = Random.Range(0, _textureResolution);
-            int y = Random.Range(0, _textureResolution);
-
-            //if selcted coordinates already contains a point redo interation 
-            if(_textureData[x,y].isPoint)
-            {
-                i--;
-                continue;
-            }
-            _textureData[x,y].isPoint = true;
-            _pointArray[i] = new Vector2(x, y);
-        }
-    }
-
-    private void GenerateValues()
-    {
         int step = _textureResolution / _numberOfPoints;
 
         Debug.Log(step);
@@ -130,6 +106,15 @@ public class NoiseGenerator: MonoBehaviour
                 _textureData[x, y].isPoint = true;
                 _pointArray[i] = new Vector2(x, y);
             }
+        }
+    }
+
+    private void FindNearest(Vector2 pos)
+    {
+        float distance = 0;
+        foreach (Vector2 point in _pointArray)
+        {
+            
         }
     }
 }
