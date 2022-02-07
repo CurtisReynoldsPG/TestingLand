@@ -52,7 +52,7 @@ public class NoiseGenerator: MonoBehaviour
 
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
-        _pointArray = new Vector2[_numberOfPoints];
+        _pointArray = new Vector2[16];
         GenerateCells();
         FillTexture();
     }
@@ -84,9 +84,16 @@ public class NoiseGenerator: MonoBehaviour
                     _texture.SetPixel(x, y, Color.red);
                     continue;
                 }
-                _texture.SetPixel(x, y, Color.black);
+
             }
+            //_texture.SetPixel(0, 0, Color.black);
+            //_texture.SetPixel(15, 0, Color.black);
+            //_texture.SetPixel(0, 15, Color.black);
+            //_texture.SetPixel(15, 15, Color.black);
+
+
         }
+        FindNearest(new Vector2(0, 0));
         _texture.Apply();
     }
 
@@ -111,10 +118,19 @@ public class NoiseGenerator: MonoBehaviour
 
     private void FindNearest(Vector2 pos)
     {
+        Vector2 shortestPos = Vector2.zero;
+        float shortestDistance = float.MaxValue;
         float distance = 0;
         foreach (Vector2 point in _pointArray)
         {
-            
+            distance = Vector2.Distance(pos, point);
+            Debug.Log($"{point}");
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                shortestPos = point;
+            }
         }
+        Debug.Log($"Original Pos {pos}, Closest Pos: {shortestPos}");
     }
 }

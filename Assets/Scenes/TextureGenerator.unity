@@ -155,8 +155,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c0a72c34b0a382418937280d2be0151, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _textureResolution: 256
-  _numberOfPoints: 0
+  _textureResolution: 64
+  _numberOfPoints: 16
+  _filterMode: 0
 --- !u!64 &1712720804
 MeshCollider:
   m_ObjectHideFlags: 0
