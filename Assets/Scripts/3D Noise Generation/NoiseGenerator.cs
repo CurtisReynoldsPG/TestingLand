@@ -53,7 +53,7 @@ public class NoiseGenerator: MonoBehaviour
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
         _pointArray = new Vector2[_numberOfPoints];
-        GeneratePoints();
+        GenerateValues();
         FillTexture();
     }
 
@@ -90,6 +90,11 @@ public class NoiseGenerator: MonoBehaviour
         _texture.Apply();
     }
 
+    private void GenerateCells()
+    {
+
+    }
+
     //Generate Points
     public void GeneratePoints()
     {
@@ -111,6 +116,20 @@ public class NoiseGenerator: MonoBehaviour
 
     private void GenerateValues()
     {
+        int step = _textureResolution / _numberOfPoints;
 
+        Debug.Log(step);
+
+        for (int i = 0; i < step; i++)
+        {
+            for (int z = 0; z < step; z++)
+            {
+                int x = Random.Range(_numberOfPoints + (_numberOfPoints * i -1), (_numberOfPoints * i));
+                int y = Random.Range(_numberOfPoints + (_numberOfPoints * z - 1), (_numberOfPoints * z));
+
+                _textureData[x, y].isPoint = true;
+                _pointArray[i] = new Vector2(x, y);
+            }
+        }
     }
 }
