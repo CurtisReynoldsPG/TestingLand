@@ -15,11 +15,15 @@ public class NoiseGenerator: MonoBehaviour
     [SerializeField] private int _cellSize;
 
     [SerializeField] private float _minDistance = 0.03f;
+
+    //decreasses overall darkness of the noise; By pushing the max distance from points out further from the edge
     [SerializeField] private float _maxDistance = 0.25f;
 
 
     [SerializeField] private bool _drawPoints = false;
     [SerializeField] private bool _invertColour = false;
+    [SerializeField] private bool _useSeedForRandom = false;
+    [SerializeField] private int _randomSeed;
 
     [SerializeField] private FilterMode _filterMode;
     private PointData[,] _textureData;
@@ -103,6 +107,8 @@ public class NoiseGenerator: MonoBehaviour
         int step = _textureResolution / _cellSize;
 
         int count = 0;
+        if(_useSeedForRandom)
+            Random.InitState(_randomSeed);
 
         for (int i = 0; i < step; i++)
         {
