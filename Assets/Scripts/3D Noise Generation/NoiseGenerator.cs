@@ -21,18 +21,18 @@ public class NoiseGenerator: MonoBehaviour
     private Texture2D _texture;
 
 
-    private void OnEnable()
+    private void Start()
     {
         InitalizeData();
     }
 
     private void Update()
     {
-        if (transform.hasChanged)
-        {
-            transform.hasChanged = false;
-            FillTexture();
-        }
+        //if (transform.hasChanged)
+        //{
+        //    transform.hasChanged = false;
+        //    FillTexture();
+        //}
     }
 
     private void InitalizeData()
@@ -62,7 +62,7 @@ public class NoiseGenerator: MonoBehaviour
     public void FillTexture()
     {
         //checks to enable hot reload
-        if (_texture.width != _textureResolution) _texture.Reinitialize(_textureResolution, _textureResolution);
+        if (_texture.width != _textureResolution) _texture.Resize(_textureResolution, _textureResolution);
         if (_texture.filterMode != _filterMode) _texture.filterMode = _filterMode;
 
         Vector3 point00 = transform.TransformPoint(new Vector3(-0.5f, -0.5f));
@@ -84,6 +84,7 @@ public class NoiseGenerator: MonoBehaviour
                     _texture.SetPixel(x, y, Color.red);
                     continue;
                 }
+                _texture.SetPixel(x,y,ColorPixel(FindNearest(new Vector2(x,y))));
 
             }
             //_texture.SetPixel(0, 0, Color.black);
@@ -93,7 +94,6 @@ public class NoiseGenerator: MonoBehaviour
 
 
         }
-        FindNearest(new Vector2(0, 0));
         _texture.Apply();
     }
 
@@ -101,7 +101,7 @@ public class NoiseGenerator: MonoBehaviour
     {
         int step = _textureResolution / _numberOfPoints;
 
-        Debug.Log(step);
+        int count = 0;
 
         for (int i = 0; i < step; i++)
         {
@@ -111,26 +111,43 @@ public class NoiseGenerator: MonoBehaviour
                 int y = Random.Range(_numberOfPoints + (_numberOfPoints * z - 1), (_numberOfPoints * z));
 
                 _textureData[x, y].isPoint = true;
-                _pointArray[i] = new Vector2(x, y);
+                _pointArray[count] = new Vector2(x, y);
+                count++;
             }
         }
     }
 
-    private void FindNearest(Vector2 pos)
+    private float FindNearest(Vector2 pos)
     {
         Vector2 shortestPos = Vector2.zero;
         float shortestDistance = float.MaxValue;
         float distance = 0;
         foreach (Vector2 point in _pointArray)
         {
-            distance = Vector2.Distance(pos, point);
-            Debug.Log($"{point}");
+            distance = Vector2.Distance(pos / _textureResolution, point / _textureResolution);
             if (distance < shortestDistance)
             {
                 shortestDistance = distance;
                 shortestPos = point;
             }
         }
-        Debug.Log($"Original Pos {pos}, Closest Pos: {shortestPos}");
+        Vector2 newPos = new Vector2((pos.x - _textureResolution/2 ) / _textureResolution, (pos.y - _textureResolution / 2 ) / _textureResolution);
+        Vector2 newShortestPos = new Vector2((shortestPos.x - _textureResolution / 2) / _textureResolution, (shortestPos.y - _textureResolution / 2) / _textureResolution);
+        //Debug.DrawLine(newPos, newShortestPos, Color.white, 10f);
+        return shortestDistance;
+    }
+
+
+    private Color ColorPixel(float dist)
+    {
+        float min = 0.05f;
+        float max = 0.2f;
+
+        float clampedDist = Mathf.Clamp(dist, min, max);
+        float value = (clampedDist - min) / (max - min);
+        Debug.Log($"Initial Distanct {dist}, normalized disntance {value}");
+        return new Color(value, value, value);
     }
 }
+
+//Range of .2 -> .8s
