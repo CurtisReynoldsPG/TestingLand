@@ -155,12 +155,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c0a72c34b0a382418937280d2be0151, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _textureResolution: 512
+  _textureResolution: 256
   _cellSize: 64
-  _minDistance: 0.01
-  _maxDistance: 0.1
+  _minDistance: 0.02
+  _maxDistance: 0.35
   _drawPoints: 0
-  _invertColour: 1
+  _invertColour: 0
+  _useSeedForRandom: 1
+  _randomSeed: 10
   _filterMode: 1
 --- !u!64 &1712720804
 MeshCollider:
