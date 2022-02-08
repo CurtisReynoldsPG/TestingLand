@@ -156,8 +156,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _textureResolution: 64
-  _numberOfPoints: 16
-  _filterMode: 0
+  _cellSize: 16
+  _filterMode: 1
 --- !u!64 &1712720804
 MeshCollider:
   m_ObjectHideFlags: 0
