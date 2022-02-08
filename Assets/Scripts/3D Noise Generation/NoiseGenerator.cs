@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Windows;
 
 public class NoiseGenerator: MonoBehaviour
 {
@@ -11,7 +12,14 @@ public class NoiseGenerator: MonoBehaviour
 
 
     [SerializeField, Range(2,512)] private int _textureResolution;
-    [SerializeField, Range(1, 64)] private int _cellSize;
+    [SerializeField] private int _cellSize;
+
+    [SerializeField] private float _minDistance = 0.03f;
+    [SerializeField] private float _maxDistance = 0.25f;
+
+
+    [SerializeField] private bool _drawPoints = false;
+    [SerializeField] private bool _invertColour = false;
 
     [SerializeField] private FilterMode _filterMode;
     private PointData[,] _textureData;
@@ -74,15 +82,20 @@ public class NoiseGenerator: MonoBehaviour
         {
             for (int x = 0; x < _textureResolution; x++)
             {
-                if(_textureData[x,y].isPoint)
+                if(_drawPoints)
                 {
-                    _texture.SetPixel(x, y, Color.red);
-                    continue;
+                    if (_textureData[x, y].isPoint)
+                    {
+                        _texture.SetPixel(x, y, Color.red);
+                        continue;
+                    }
                 }
+
                 _texture.SetPixel(x,y,ColorPixel(FindNearest(new Vector2(x,y))));
             }
         }
         _texture.Apply();
+        //SaveImage();
     }
 
     private void GenerateCells()
@@ -107,13 +120,19 @@ public class NoiseGenerator: MonoBehaviour
 
     private void GenerateTilingPoints()
     {
-        _pointArrayAll = new Vector2[_pointArray.Length * 5];
+        _pointArrayAll = new Vector2[_pointArray.Length * 9];
 
         Vector2 leftOffset = new Vector2( 0 - _textureResolution, 0);
         Vector2 rightOffset = new Vector2(0 + _textureResolution, 0);
 
+        Vector2 topLeftOffset = new Vector2(0 - _textureResolution, 0 + _textureResolution);
+        Vector2 topRightOffset = new Vector2(0 + _textureResolution, 0 + _textureResolution);
+
         Vector2 topOffset = new Vector2( 0 , 0 + _textureResolution);
         Vector2 bottomOffset = new Vector2( 0, 0 - _textureResolution);
+
+        Vector2 bottomLeftOffset = new Vector2(0 - _textureResolution, 0 - _textureResolution);
+        Vector2 bottomRightOffset = new Vector2(0 + _textureResolution, 0 - _textureResolution);
 
         int counter = 0;
 
@@ -121,24 +140,33 @@ public class NoiseGenerator: MonoBehaviour
         {
             //Generate center point
             _pointArrayAll[counter] = _pointArray[i];
+
             //Generate left point
             _pointArrayAll[counter + 1] = _pointArray[i] + leftOffset;
-            //Generate right point
-            _pointArrayAll[counter + 2] = _pointArray[i] + rightOffset;
-            ////Generate top point
+
+            //Generate topLeft point
+            _pointArrayAll[counter + 2] = _pointArray[i] + topLeftOffset;
+
+            //Generate top point
             _pointArrayAll[counter + 3] = _pointArray[i] + topOffset;
-            ////Generate bottom point
-            _pointArrayAll[counter + 4] = _pointArray[i] + bottomOffset;
-            counter += 5;
+
+            //Generate topRight point
+            _pointArrayAll[counter + 4] = _pointArray[i] + topRightOffset;
+
+            //Generate right point
+            _pointArrayAll[counter + 5] = _pointArray[i] + rightOffset;
+
+            //Generate bottomRight
+            _pointArrayAll[counter + 6] = _pointArray[i] + bottomRightOffset;
+
+            //Generate bottom point
+            _pointArrayAll[counter + 7] = _pointArray[i] + bottomOffset;
+
+            //Generate bottom left
+            _pointArrayAll[counter + 8] = _pointArray[i] + bottomLeftOffset;
+
+            counter += 9;
         }
-
-
-        for (int i = 0; i < _pointArrayAll.Length; i++)
-        {
-            Debug.Log(_pointArrayAll[i]);
-        }
-
-
     }
 
     private float FindNearest(Vector2 pos)
@@ -157,18 +185,34 @@ public class NoiseGenerator: MonoBehaviour
         }
         Vector2 newPos = new Vector2((pos.x - _textureResolution/2 ) / _textureResolution, (pos.y - _textureResolution / 2 ) / _textureResolution);
         Vector2 newShortestPos = new Vector2((shortestPos.x - _textureResolution / 2) / _textureResolution, (shortestPos.y - _textureResolution / 2) / _textureResolution);
-        Debug.DrawLine(newPos, newShortestPos, Color.white, 10f);
         return shortestDistance;
     }
 
 
     private Color ColorPixel(float dist)
     {
-        float min = 0.05f;
-        float max = 0.2f;
-
-        float clampedDist = Mathf.Clamp(dist, min, max);
-        float value = (clampedDist - min) / (max - min);
+        float clampedDist = Mathf.Clamp(dist, _minDistance, _maxDistance);
+        float value = (clampedDist - _minDistance) / (_maxDistance- _minDistance);
+        if(_invertColour)
+        {
+            return InvertColor(new Color (value, value, value));
+        }
         return new Color(value, value, value);
+    }
+
+    private Color InvertColor(Color color)
+    {
+        return new Color(1.0f - color.r, 1.0f - color.g, 1.0f - color.b);
+    }
+
+    private void SaveImage()
+    {
+        byte[] bytes = _texture.EncodeToPNG();
+        var dirPath = "C:/Users/Public/Repos/TestingLand/";
+        if (!Directory.Exists(dirPath))
+        {
+            Directory.CreateDirectory(dirPath);
+        }
+        File.WriteAllBytes(dirPath + "Image" + ".png", bytes);
     }
 }
