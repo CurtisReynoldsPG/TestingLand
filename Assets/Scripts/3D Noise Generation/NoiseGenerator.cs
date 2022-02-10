@@ -10,6 +10,12 @@ public class NoiseGenerator: MonoBehaviour
         public bool isPoint;
     }
 
+    private struct Cell
+    {
+        public Vector2 Point;
+
+    }
+
 
     [SerializeField, Range(2,512)] private int _textureResolution;
     [SerializeField] private int _cellSize;
@@ -29,11 +35,13 @@ public class NoiseGenerator: MonoBehaviour
     private PointData[,] _textureData;
 
     private Vector2[] _pointArray;
-    private Vector2[] _leftPointArray;
+    private Vector2[,] _pointArrayGrid;
 
     private Vector2[] _pointArrayAll;
 
     private Texture2D _texture;
+
+    private int testingCounter;
 
 
     private void Start()
@@ -68,6 +76,7 @@ public class NoiseGenerator: MonoBehaviour
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
         _pointArray = new Vector2[(_textureResolution / _cellSize) * (_textureResolution / _cellSize)];
+        _pointArrayGrid = new Vector2[_textureResolution / _cellSize, _textureResolution / _cellSize];
         GenerateCells();
         GenerateTilingPoints();
         FillTexture();
@@ -78,7 +87,7 @@ public class NoiseGenerator: MonoBehaviour
     public void FillTexture()
     {
         //checks to enable hot reload
-        if (_texture.width != _textureResolution) _texture.Resize(_textureResolution, _textureResolution);
+        if (_texture.width != _textureResolution) _texture.Reinitialize(_textureResolution, _textureResolution);
         if (_texture.filterMode != _filterMode) _texture.filterMode = _filterMode;
 
         float stepSize = 1f / _textureResolution;
@@ -99,6 +108,7 @@ public class NoiseGenerator: MonoBehaviour
             }
         }
         _texture.Apply();
+        Debug.Log(testingCounter);
         //SaveImage();
     }
 
@@ -119,6 +129,7 @@ public class NoiseGenerator: MonoBehaviour
 
                 _textureData[x, y].isPoint = true;
                 _pointArray[count] = new Vector2(x, y);
+                _pointArrayGrid[i, z] = new Vector2(x, y);
                 count++;
             }
         }
@@ -177,18 +188,36 @@ public class NoiseGenerator: MonoBehaviour
 
     private float FindNearest(Vector2 pos)
     {
+        //Find current cell
+        int xPos = (int)Mathf.Floor(pos.x / _cellSize);
+        int yPos = (int)Mathf.Floor(pos.y / _cellSize);
+
         Vector2 shortestPos = Vector2.zero;
         float shortestDistance = float.MaxValue;
         float distance = 0;
-        foreach (Vector2 point in _pointArrayAll)
+
+        for (int i = 0; i < 1; i++)
         {
-            distance = Vector2.Distance(pos / _textureResolution, point / _textureResolution);
+            distance = Vector2.Distance(pos / _textureResolution, _pointArrayGrid[xPos,yPos] / _textureResolution);
             if (distance < shortestDistance)
             {
                 shortestDistance = distance;
-                shortestPos = point;
+                shortestPos = _pointArrayGrid[xPos, yPos];
             }
+            testingCounter++;
         }
+
+        //foreach (Vector2 point in _pointArrayAll)
+        //{
+        //    distance = Vector2.Distance(pos / _textureResolution, point / _textureResolution);
+        //    if (distance < shortestDistance)
+        //    {
+        //        shortestDistance = distance;
+        //        shortestPos = point;
+
+        //    }
+        //    testingCounter++;
+        //}
         //Vector2 newPos = new Vector2((pos.x - _textureResolution/2 ) / _textureResolution, (pos.y - _textureResolution / 2 ) / _textureResolution);
         //Vector2 newShortestPos = new Vector2((shortestPos.x - _textureResolution / 2) / _textureResolution, (shortestPos.y - _textureResolution / 2) / _textureResolution);
         return shortestDistance;
