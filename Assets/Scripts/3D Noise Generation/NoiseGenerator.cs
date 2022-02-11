@@ -70,13 +70,12 @@ public class NoiseGenerator: MonoBehaviour
         }
 
         gridSize = _textureResolution / _cellSize;
-        Debug.Log(gridSize);
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
         _pointArray = new Vector2[(_textureResolution / _cellSize) * (_textureResolution / _cellSize)];
         _cellPoints = new Vector2[_textureResolution / _cellSize, _textureResolution / _cellSize];
         GenerateCells();
-        GenerateTilingPoints();
+        //GenerateTilingPoints();
         FillTexture();
     }
 
@@ -85,7 +84,7 @@ public class NoiseGenerator: MonoBehaviour
     public void FillTexture()
     {
         //checks to enable hot reload
-        if (_texture.width != _textureResolution) _texture.Resize(_textureResolution, _textureResolution);
+        if (_texture.width != _textureResolution) _texture.Reinitialize(_textureResolution, _textureResolution);
         if (_texture.filterMode != _filterMode) _texture.filterMode = _filterMode;
 
         float stepSize = 1f / _textureResolution;
@@ -249,7 +248,6 @@ public class NoiseGenerator: MonoBehaviour
     private float CheckCellDistance(int direction, Vector2 cellPos, Vector2 pos)
     {
         float distance;
-        Debug.Log(cellPos);
         Vector2 normalizedPos = new Vector2((int)cellPos.x, (int)cellPos.y);
         Vector2 gridToCheck;
         switch (direction)
@@ -294,21 +292,20 @@ public class NoiseGenerator: MonoBehaviour
                 gridToCheck = normalizedPos;
                 break;
         }
-
         gridToCheck = ClampBounds(gridToCheck);
-        distance = Vector2.Distance(pos / _textureResolution, _cellPoints[(int)gridToCheck.x,(int)gridToCheck.y] / _textureResolution);
+        distance = Vector2.Distance(pos / _textureResolution, _cellPoints[(int)gridToCheck.x,(int)gridToCheck.y]);
         return distance;
     }
 
     private Vector2 ClampBounds(Vector2 unclampedPos)
     {
         Vector2 clampedPos = unclampedPos;
-        if(unclampedPos.x < 0 || unclampedPos.x > gridSize)
+        if(unclampedPos.x < 0 || unclampedPos.x >= gridSize)
         {
             clampedPos.x = unclampedPos.x < 0 ? unclampedPos.x + gridSize : unclampedPos.x - gridSize;
         }
 
-        if(unclampedPos.y < 0 || unclampedPos.y > gridSize)
+        if(unclampedPos.y < 0 || unclampedPos.y >= gridSize)
         {
             clampedPos.y = unclampedPos.y < 0 ? unclampedPos.y + gridSize : unclampedPos.y - gridSize;
         }
