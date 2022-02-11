@@ -28,12 +28,16 @@ public class NoiseGenerator: MonoBehaviour
     [SerializeField] private FilterMode _filterMode;
     private PointData[,] _textureData;
 
+
+    private Vector2[,] _cellPoints;
+
     private Vector2[] _pointArray;
     private Vector2[] _leftPointArray;
 
     private Vector2[] _pointArrayAll;
 
     private Texture2D _texture;
+    private int gridSize;
 
 
     private void Start()
@@ -65,9 +69,12 @@ public class NoiseGenerator: MonoBehaviour
             GetComponent<MeshRenderer>().material.mainTexture = _texture;
         }
 
+        gridSize = _textureResolution / _cellSize;
+        Debug.Log(gridSize);
         //init texture Array
         _textureData = new PointData[_textureResolution, _textureResolution];
         _pointArray = new Vector2[(_textureResolution / _cellSize) * (_textureResolution / _cellSize)];
+        _cellPoints = new Vector2[_textureResolution / _cellSize, _textureResolution / _cellSize];
         GenerateCells();
         GenerateTilingPoints();
         FillTexture();
@@ -118,7 +125,8 @@ public class NoiseGenerator: MonoBehaviour
                 int y = Random.Range(_cellSize + (_cellSize * z - 1), (_cellSize * z));
 
                 _textureData[x, y].isPoint = true;
-                _pointArray[count] = new Vector2(x, y);
+                //_pointArray[count] = new Vector2(x, y);
+                _cellPoints[i, z] = new Vector2(x, y);
                 count++;
             }
         }
@@ -177,21 +185,37 @@ public class NoiseGenerator: MonoBehaviour
 
     private float FindNearest(Vector2 pos)
     {
+        Vector2 currentCell = new Vector2((int)pos.x/_cellSize, (int)pos.y/_cellSize);
+
+
         Vector2 shortestPos = Vector2.zero;
         float shortestDistance = float.MaxValue;
         float distance = 0;
-        foreach (Vector2 point in _pointArrayAll)
+
+        //Check adjacent cells
+        for (int i = 0; i < 9; i++)
         {
-            distance = Vector2.Distance(pos / _textureResolution, point / _textureResolution);
+            distance = CheckCellDistance(i, currentCell, pos);
             if (distance < shortestDistance)
             {
                 shortestDistance = distance;
-                shortestPos = point;
+                shortestPos = _cellPoints[(int)currentCell.x,(int)currentCell.y];
             }
         }
+        return shortestDistance;
+
+
+        //foreach (Vector2 point in _pointArrayAll)
+        //{
+        //    distance = Vector2.Distance(pos / _textureResolution, point / _textureResolution);
+        //    if (distance < shortestDistance)
+        //    {
+        //        shortestDistance = distance;
+        //        shortestPos = point;
+        //    }
+        //}
         //Vector2 newPos = new Vector2((pos.x - _textureResolution/2 ) / _textureResolution, (pos.y - _textureResolution / 2 ) / _textureResolution);
         //Vector2 newShortestPos = new Vector2((shortestPos.x - _textureResolution / 2) / _textureResolution, (shortestPos.y - _textureResolution / 2) / _textureResolution);
-        return shortestDistance;
     }
 
 
@@ -221,4 +245,75 @@ public class NoiseGenerator: MonoBehaviour
         }
         File.WriteAllBytes(dirPath + "Image" + ".png", bytes);
     }
+
+    private float CheckCellDistance(int direction, Vector2 cellPos, Vector2 pos)
+    {
+        float distance;
+        Debug.Log(cellPos);
+        Vector2 normalizedPos = new Vector2((int)cellPos.x, (int)cellPos.y);
+        Vector2 gridToCheck;
+        switch (direction)
+        {
+            //Center
+            case 0:
+                gridToCheck = normalizedPos;
+                break;
+            //Left
+            case 1:
+                gridToCheck = new Vector2(normalizedPos.x - 1,normalizedPos.y);
+                break;
+            //TopLeft
+            case 2:
+                gridToCheck = new Vector2(normalizedPos.x - 1, normalizedPos.y + 1);
+                break;
+            //Top
+            case 3:
+                gridToCheck = new Vector2(normalizedPos.x, normalizedPos.y + 1);
+                break;
+            //Top Right
+            case 4:
+                gridToCheck = new Vector2(normalizedPos.x + 1, normalizedPos.y + 1);
+                break;
+            //Right
+            case 5:
+                gridToCheck = new Vector2(normalizedPos.x + 1, normalizedPos.y);
+                break;
+            //Bottom Right
+            case 6:
+                gridToCheck = new Vector2(normalizedPos.x +1, normalizedPos.y -1);
+                break;
+            //Bottom 
+            case 7:
+                gridToCheck = new Vector2(normalizedPos.x, normalizedPos.y - 1);
+                break;
+            //Bottom left 
+            case 8:
+                gridToCheck = new Vector2(normalizedPos.x -1 , normalizedPos.y - 1);
+                break;
+            default:
+                gridToCheck = normalizedPos;
+                break;
+        }
+
+        gridToCheck = ClampBounds(gridToCheck);
+        distance = Vector2.Distance(pos / _textureResolution, _cellPoints[(int)gridToCheck.x,(int)gridToCheck.y] / _textureResolution);
+        return distance;
+    }
+
+    private Vector2 ClampBounds(Vector2 unclampedPos)
+    {
+        Vector2 clampedPos = unclampedPos;
+        if(unclampedPos.x < 0 || unclampedPos.x > gridSize)
+        {
+            clampedPos.x = unclampedPos.x < 0 ? unclampedPos.x + gridSize : unclampedPos.x - gridSize;
+        }
+
+        if(unclampedPos.y < 0 || unclampedPos.y > gridSize)
+        {
+            clampedPos.y = unclampedPos.y < 0 ? unclampedPos.y + gridSize : unclampedPos.y - gridSize;
+        }
+
+        return clampedPos;
+    }
+
 }
